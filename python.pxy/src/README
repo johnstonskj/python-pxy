@@ -1,0 +1,29 @@
+                           PXY version 1.0
+                           ===============
+                           
+PXY (pronounded Pixie) is a simple file format that allows a structured
+representation of data and is easily and directly translated into XML. 
+
+The basic format is as shown below:
+
+    document:
+        element:
+            attribute = 'string'
+            {namespace}child: 'simple content'
+            
+Each element is denoted as an NCName followed by a colon, it may then be
+specified as a simple content by adding the content on the same line. If
+the element has complex content then the element must be followed by its 
+content on following, *indented* lines. Indentation is important to PXY
+In the same way as Python code to denote scope. 
+
+Also note that namespaces can be used, using the convention supported by
+ElementTree where the namespace becomes a prefix for the name but is
+separated using braces.
+
+The two modules pxy and pxy.pxml are used to convert between PXY source 
+and Python dictionaries and between PXY source and XML respectively.
+
+
+----------
+Simon Johnston (skjohn@us.ibm.com)
