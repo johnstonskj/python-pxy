@@ -10,30 +10,30 @@ import pxy
 
 __DEFAULT_ENCODING = 'utf-8'
 
-def to_xml_string(dict):
-    """ to_xml_string(dict) -> str
+def to_string(dict):
+    """ to_string(dict) -> str
         Convert the PXY dictionary into an XML string. 
     """
+    etree = to_etree(dict)
+    if etree is None:
+        return ""
+    else:
+        return '<?xml version="1.0" encoding="%s"?>%s' % (__DEFAULT_ENCODING,
+                                                          ElementTree.tostring(etree, __DEFAULT_ENCODING))
+
+def to_etree(dict):
+    """ to_etree(dict) -> ElementTree
+        Convert the PXY dictionary into an ElementTree.
+    """
     if type(dict) == type({}):
-        element = None
+        root = {}
         for key,value in dict.iteritems():
-            element = __to_xml(key, value, None)
-        if element is None:
-            return ""
-        else:
-            return '<?xml version="1.0" encoding="%s"?>%s' % (__DEFAULT_ENCODING,
-                                                          ElementTree.tostring(element, __DEFAULT_ENCODING))
+            root = __to_etree(key, value, None)
+        return root
     else:
         raise pxy.InvalidFileFormatException, "expecting string or dictionary, not %s" % str(type(pxy))
 
-def to_etree(dict):
-    """ to_etree(pxy) -> ElementTree
-        Convert the PXY string into an ElementTree.
-    """
-    xml = to_xml_string(dict)
-    return ElementTree.XML(xml)
-
-def from_xml_string(xml):
+def from_string(xml):
     """ from_xml_string(xml) -> str
         Convert the XML string into a dictionary structure.
     """
@@ -43,9 +43,18 @@ def from_etree(etree):
     """ from_etree(etree) -> str
         Convert the ElementTree into a dictionary structure.
     """
-    raise NotImplementedError
+    element = ElementTree.Element('dummy')
+    if isinstance(etree, ElementTree.ElementTree):
+        return __from_etree(etree.getroot(), {})
+    elif isinstance(etree, type(element)):
+        return __from_etree(etree, {})
+    else:
+        raise pxy.InvalidFileFormatException, 'etree not ElementTree or Element'
 
-def __to_xml(key, value, element):
+def __to_etree(key, value, element):
+    """ __to_etree(key, value, element) -> Element
+        Recursive function to build an ElementTree from a dictionary.
+    """
     attributes = {}
     for key2,value2 in value.iteritems():
         if type(value2) in pxy.__SIMPLE_TYPES:
@@ -59,12 +68,30 @@ def __to_xml(key, value, element):
         element.text = str(value[''])
     for key2,value2 in value.iteritems():
         if type(value2) == types.DictType:
-            __to_xml(key2, value2, element)
+            __to_etree(key2, value2, element)
         elif type(value2) in pxy.__LIST_TYPES:
             for item in value2:
                 if type(item) in pxy.__SIMPLE_TYPES:
                     child = ElementTree.SubElement(element, key2)
                     child.text = str(item)
                 else: 
-                    __to_xml(key2, item, element)
+                    __to_etree(key2, item, element)
     return element
+
+def __from_etree(etree, dict):
+    """ __from_etree(etree) -> dict
+        Recursive function to build a dictionary from an ElementTree Element.
+    """
+    new = {}
+    if dict.has_key(etree.tag):
+        elem = dict[etree.tag]
+        dict[etree.tag] = [elem,new]
+    else:
+        dict[etree.tag] = new
+    for attr in etree.keys():
+        new[attr] = etree.get(attr)
+    if etree.text and etree.tag:
+        new[''] = etree.text
+    for child in list(etree):
+        __from_etree(child, new)
+    return dict

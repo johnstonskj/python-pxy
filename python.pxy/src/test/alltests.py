@@ -7,3 +7,4 @@ setup script using:
 
 from tpxy import BasicTranslationUnitTests
 from txml import XmlTranslationUnitTests
+from tscript import ScriptTests

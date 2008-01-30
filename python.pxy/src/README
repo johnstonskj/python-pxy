@@ -2,7 +2,9 @@
                            ===============
                            
 PXY (pronounded Pixie) is a simple file format that allows a structured
-representation of data and is easily and directly translated into XML. 
+representation of data and is easily and directly translated into a subset
+of XML. The project is licensed under Apache License 2.0 (see
+http://www.apache.org/licenses/LICENSE-2.0).
 
 The basic format is as shown below:
 

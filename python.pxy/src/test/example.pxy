@@ -1,0 +1,22 @@
+application:
+    path:
+        uri_template="workitems"
+        dto:
+            uri="workitems/{wiid}"
+            suffix=".zip"
+            include: "workitems/{wiid}"
+            include: "workitems/{wiid}/comments"
+        collection:
+            accepts="application/xml"
+            schema="wi.xsd"
+            uri_scheme="number"
+            entry_variable="wiid"
+        path:
+            uri_template="workitems/{wiid}/comments"
+            collection:
+                accepts="application/atom+xml"
+                uri_scheme="slug"
+            permissions:
+                add_role:
+                    operations="get,head,post"
+                    'Commenter'

@@ -68,7 +68,7 @@ GOOD_PXY = [
     child:
         depth = 2"""]
 
-QUALIFIED_PXY = """{http://example.org/schema/app}appRoot:
+QUALIFIED_PXY = ["""{http://example.org/schema/app}appRoot:
     {http://example.org/schema/app}version:
         {http://example.org/schema/app}major:
             1
@@ -79,4 +79,21 @@ QUALIFIED_PXY = """{http://example.org/schema/app}appRoot:
     {http://example.org/schema/app}name:
         'Me'
     {http://example.org/schema/app}description:
-        'my thing'"""
+        'my thing'"""]
+
+GOOD_XML = ["""<?xml version="1.0" encoding="utf-8"?>
+<application>
+  <path uri_template="workitems">
+    <path uri_template="workitems/{wiid}/comments">
+      <collection accepts="application/atom+xml" uri_scheme="slug" />
+      <permissions>
+        <add_role operations="get,head,post">Commenter</add_role>
+      </permissions>
+    </path>
+    <dto suffix=".zip" uri="workitems/{wiid}">
+      <include>workitems/{wiid}</include>
+      <include>workitems/{wiid}/comments</include>
+    </dto>
+    <collection accepts="application/xml" entry_variable="wiid" schema="wi.xsd" uri_scheme="number" />
+  </path>
+</application>"""]

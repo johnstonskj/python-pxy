@@ -7,6 +7,7 @@ Each script takes parameters of the form:
 """
 
 import sys
+from xml.etree import ElementTree
 
 import pxy, pxy.pxml
 
@@ -26,7 +27,7 @@ def pxy_to_xml():
     else:
         dict = pxy.parse(sys.stdin)
     # Convert
-    xml = pxy.pxml.to_xml_string(dict)
+    xml = pxy.pxml.to_string(dict)
     # And Output
     out = sys.stdout
     close_out = False
@@ -42,24 +43,20 @@ def xml_to_pxy():
         __usage()
         return
     # Process input
-    xml = ''
+    etree = None
     inp = sys.stdin
-    close_inp = False
     if len(sys.argv) >= 2:
-        inp = open(sys.argv[1], "rt")
-        close_inp = True
-    for line in inp:
-        xml = xml + line
-    if close_inp:
-        inp.close()
+        etree = ElementTree.parse(sys.argv[1])
+    else:
+        etree = ElementTree.parse(sys.stdin)
     # Convert
-    text = pxy.pxml.from_xml_string(xml)
+    dict = pxy.pxml.from_etree(etree)
     # And Output
     out = sys.stdout
     close_out = False
     if len(sys.argv) == 3:
         out = open(sys.argv[2], 'wt')
         close_out = True
-    out.write(text)
+    out.write(pxy.to_string(dict))
     if close_out:
         out.close()
