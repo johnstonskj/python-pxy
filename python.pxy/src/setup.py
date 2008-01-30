@@ -15,11 +15,11 @@ from setuptools import setup, find_packages
 
 import pxy
 
-setup(name=loggingx.__name__,
-      version=loggingx.__version__,
+setup(name=pxy.__name__,
+      version=pxy.__version__,
       description='Parser/writer for the PXY compact XML form.',
-      author=loggingx.__author__,
-      author_email=loggingx.__author_email__,
+      author=pxy.__author__,
+      author_email=pxy.__author_email__,
       url='http://www.ibm.com/developerworks/blog/pages/johnston',
       packages=find_packages(exclude=['test']),
       entry_points = {

@@ -8,6 +8,8 @@ from xml.etree import ElementTree
 
 import pxy
 
+__DEFAULT_ENCODING = 'utf-8'
+
 def to_xml_string(pxy):
     """ to_xml_string(pxy) -> str
         Convert the PXY string into an XML string. 
@@ -15,7 +17,8 @@ def to_xml_string(pxy):
     if type(pxy) == type({}):
         for key,value in pxy.iteritems():
             element = __to_xml(key, value, None)
-        return ElementTree.tostring(element, 'utf-8')
+        return '<?xml version="1.0" encoding="%s"?>%s' % (__DEFAULT_ENCODING,
+                                                          ElementTree.tostring(element, __DEFAULT_ENCODING))
     else:
         raise pxy.InvalidFileFormatException, "expecting string or dictionary, not %s" % str(type(pxy))
 

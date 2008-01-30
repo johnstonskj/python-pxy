@@ -44,7 +44,7 @@ import StringIO
 
 __version__ = '1.0'
 __author__ = 'Simon Johnston'
-__author_email__ = 'skjohn@us.ibm.com'
+__author_email__ = 'johnstonskj@gmail.com'
 
 __INDENT = '    '
 __SIMPLE_TYPES = [types.BooleanType, types.FloatType, types.IntType, types.LongType, 
@@ -85,10 +85,9 @@ def parse_string(pxy):
     """
     # TODO: Currently doesn't unwind stack correctly!
     stack = []
-    current = {}
+    current = (0, {})
     stack.append(current)
-    last_indent = 0
-    expect_indent = 0
+    expect_indent = False
     lines = pxy.split('\n')
     for line in lines:
         if len(line) > 0:
@@ -97,61 +96,61 @@ def parse_string(pxy):
             m_attr = __RE_ATTR.match(line)
             m_content = __RE_CONTENT.match(line)
             if m_obj:
-                if len(m_obj.group(1)) < last_indent:
+                indent = len(m_obj2.group(1))
+                while indent > 0 and indent <= current[0]:
                     stack.pop()
-                    current = stack[len(stack)-1]
-                last_indent = len(m_obj.group(1))
+                    current = __peek(stack)
                 new = {}
-                if current.has_key(m_obj.group(2)):
-                    elem = current[m_obj.group(2)]
+                if current[1].has_key(m_obj.group(2)):
+                    elem = current[1][m_obj.group(2)]
                     if type(elem) in __SIMPLE_TYPES:
                         raise InvalidFileFormatException, 'Cannot have attribute/element with same name'
                     elif type(elem) == types.ListType:
                         elem.append(new)
                     else:
-                        current[m_obj.group(2)] = [new,]
+                        current[1][m_obj.group(2)] = [elem,new]
                 else:
-                    current[m_obj.group(2)] = new
-                current = new
-                stack.append(new)
-                expect_indent = 1
+                    current[1][m_obj.group(2)] = new
+                current = (indent, new)
+                stack.append(current)
+                expect_indent = True
             elif m_obj2:
-                if len(m_obj2.group(1)) < last_indent:
+                indent = len(m_obj2.group(1))
+                while indent <= current[0]:
                     stack.pop()
-                    current = stack[len(stack)-1]
-                last_indent = len(m_obj2.group(1))
+                    current = __peek(stack)
                 new = {}
-                new[''] = m_obj2.group(3)
-                if current.has_key(m_obj2.group(2)):
-                    elem = current[m_obj2.group(2)]
+                new[''] = eval(str(m_obj2.group(4)))
+                if current[1].has_key(m_obj2.group(2)):
+                    elem = current[1][m_obj2.group(2)]
                     if type(elem) in __SIMPLE_TYPES:
                         raise InvalidFileFormatException, 'Cannot have attribute/element with same name'
                     elif type(elem) == types.ListType:
                         elem.append(new)
                     else:
-                        current[m_obj2.group(2)] = [elem,new]
+                        current[1][m_obj2.group(2)] = [elem,new]
                 else:
-                    current[m_obj2.group(2)] = new
-                expect_indent = 0
+                    current[1][m_obj2.group(2)] = new
+                expect_indent = False
             elif m_attr:
-                if expect_indent and len(m_attr.group(1)) <= last_indent:
+                indent = len(m_attr.group(1))
+                if expect_indent and indent <= current[0]:
                     raise IndentationError
-                last_indent = len(m_attr.group(1))
-                if current.has_key(m_attr.group(2)):
+                if current[1].has_key(m_attr.group(2)):
                     raise InvalidFileFormatException, 'Cannot have more than one attribute with the same name'
-                current[m_attr.group(2)] = eval(m_attr.group(4))
-                expect_indent = 0
+                current[1][m_attr.group(2)] = eval(m_attr.group(4))
+                expect_indent = False
             elif m_content:
-                if expect_indent and len(m_content.group(1)) <= last_indent:
+                indent = len(m_content.group(1))
+                if expect_indent and indent <= current[0]:
                     raise IndentationError
-                last_indent = len(m_content.group(1))
-                if current.has_key(''):
+                if current[1].has_key(''):
                     raise InvalidFileFormatException, 'Only one content node allowed per element' 
-                current[''] = eval(m_content.group(2))
-                expect_indent = 0
+                current[1][''] = eval(m_content.group(2))
+                expect_indent = False
             else:
                 raise InvalidFileFormatException, 'Badly formatted line: %s' % line
-    return stack[0]
+    return stack[0][1]
 
 def to_string(dict):
     """ to_string(dict) -> str
@@ -196,3 +195,9 @@ def __write(name, obj, fh, indent):
         fh.write("%s%s\n" % (indent, repr(obj)))
     else:
         raise InvalidFileFormatException, "unexpected type, %s" % str(type(obj))
+
+def __peek(stack, default=None):
+    if stack:
+        return stack[len(stack)-1]
+    else:
+        return default

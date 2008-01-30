@@ -43,13 +43,26 @@ GOOD_PXY = [
         'Me'
     description:
         'my thing'""",
-"""app:
-    version:
-        major: 1
-        build: 'darwin'
-        minor: 0
-    name: 'Me'
-    description: 'my thing'"""]
+"""{http://example.org/schemas/app}app:
+    {uri:urn:oasis:version:1.0}version:
+        {uri:urn:oasis:version:1.0}major:
+            1
+        {uri:urn:oasis:version:1.0}build:
+            'darwin'
+        {uri:urn:oasis:version:1.0}minor:
+            0
+    {http://example.org/schemas/app}name:
+        'Me'
+    {http://example.org/schemas/app}description:
+        'my thing'""",
+"""root:
+    child:
+        child:
+            child:
+                child:
+                    depth = 5
+    child:
+        depth = 2"""]
 
 QUALIFIED_PXY = """{http://example.org/schema/app}appRoot:
     {http://example.org/schema/app}version:
