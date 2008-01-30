@@ -52,6 +52,7 @@ __SIMPLE_TYPES = [types.BooleanType, types.FloatType, types.IntType, types.LongT
 __LIST_TYPES = [types.ListType, types.TupleType]
 
 __RE_QNAME = re.compile('^{(P<ns>\w+)}(P<name>\w+)$')
+__RE_WS = re.compile('^\s*$')
 __RE_OBJ = re.compile('^(\s*)(({[^}]+})?\w+):\s*$') #('^(P<lws>\s*)(P<name>\w+):\s*')
 __RE_OBJ2 = re.compile('^(\s*)(({[^}]+})?\w+):\s*(.*)') #('^(P<lws>\s*)(P<name>\w+):\s*')
 __RE_ATTR = re.compile('^(\s*)(({[^}]+})?\w+)\s*=\s*(.*)') #('^(P<lws>\s*)(P<name>\w+)\s*=\s*(P<value>\S+)\s*$')
@@ -69,6 +70,7 @@ def parse(file):
         the fil name or may be a file handle.
     """
     fh = file
+    do_close = False
     if type(file) == type(""):
         fh = open(file, "rt")
         do_close = True
@@ -91,11 +93,14 @@ def parse_string(pxy):
     lines = pxy.split('\n')
     for line in lines:
         if len(line) > 0:
+            m_ws = __RE_WS.match(line)
             m_obj = __RE_OBJ.match(line)
             m_obj2 = __RE_OBJ2.match(line)
             m_attr = __RE_ATTR.match(line)
             m_content = __RE_CONTENT.match(line)
-            if m_obj:
+            if m_ws:
+                pass # Whitespace, or empty, line
+            elif m_obj:
                 indent = len(m_obj2.group(1))
                 while indent > 0 and indent <= current[0]:
                     stack.pop()
@@ -120,7 +125,7 @@ def parse_string(pxy):
                     stack.pop()
                     current = __peek(stack)
                 new = {}
-                new[''] = eval(str(m_obj2.group(4)))
+                new[''] = __eval(str(m_obj2.group(4)))
                 if current[1].has_key(m_obj2.group(2)):
                     elem = current[1][m_obj2.group(2)]
                     if type(elem) in __SIMPLE_TYPES:
@@ -138,7 +143,7 @@ def parse_string(pxy):
                     raise IndentationError
                 if current[1].has_key(m_attr.group(2)):
                     raise InvalidFileFormatException, 'Cannot have more than one attribute with the same name'
-                current[1][m_attr.group(2)] = eval(m_attr.group(4))
+                current[1][m_attr.group(2)] = __eval(m_attr.group(4))
                 expect_indent = False
             elif m_content:
                 indent = len(m_content.group(1))
@@ -146,7 +151,7 @@ def parse_string(pxy):
                     raise IndentationError
                 if current[1].has_key(''):
                     raise InvalidFileFormatException, 'Only one content node allowed per element' 
-                current[1][''] = eval(m_content.group(2))
+                current[1][''] = __eval(m_content.group(2))
                 expect_indent = False
             else:
                 raise InvalidFileFormatException, 'Badly formatted line: %s' % line
@@ -201,3 +206,9 @@ def __peek(stack, default=None):
         return stack[len(stack)-1]
     else:
         return default
+    
+def __eval(content):
+    try:
+        return eval(content)
+    except SyntaxError:
+        raise InvalidFileFormatException, 'Syntax Error evaluating content: %s' % content

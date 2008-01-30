@@ -1,3 +1,7 @@
+"""
+Test data used by the suite.
+"""
+
 BAD_DICTS = [{'app1': 'ok', 'app2': 'bad'}
             ]
 

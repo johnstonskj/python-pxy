@@ -7,25 +7,26 @@ Each script takes parameters of the form:
 """
 
 import sys
+
 import pxy, pxy.pxml
 
 def __usage():
-    print 'Usage: %s [(inp-file|stdin) [out-file|stdout]]' % sys.argv[0]
+    import os.path
+    name = os.path.basename(sys.argv[0])
+    print 'Usage: %s [(inp-file|stdin) [out-file|stdout]]' % name
 
 def pxy_to_xml():
+    if len(sys.argv) > 3:
+        __usage()
+        return
     # Process input
-    pxy = ''
-    inp = sys.stdin
-    close_inp = False
+    dict = {}
     if len(sys.argv) >= 2:
-        inp = open(sys.argv[1], "rt")
-        close_inp = True
-    for line in inp:
-        pxy = pxy + line
-    if close_inp:
-        inp.close()
+        dict = pxy.parse(sys.argv[1]) 
+    else:
+        dict = pxy.parse(sys.stdin)
     # Convert
-    xml = pxy.pxml.to_xml_string(pxy)
+    xml = pxy.pxml.to_xml_string(dict)
     # And Output
     out = sys.stdout
     close_out = False
@@ -37,6 +38,9 @@ def pxy_to_xml():
         out.close()
 
 def xml_to_pxy():
+    if len(sys.argv) > 3:
+        __usage()
+        return
     # Process input
     xml = ''
     inp = sys.stdin
@@ -49,13 +53,13 @@ def xml_to_pxy():
     if close_inp:
         inp.close()
     # Convert
-    pxy = pxy.pxml.from_xml_string(xml)
+    text = pxy.pxml.from_xml_string(xml)
     # And Output
     out = sys.stdout
     close_out = False
     if len(sys.argv) == 3:
         out = open(sys.argv[2], 'wt')
         close_out = True
-    out.write(pxy)
+    out.write(text)
     if close_out:
         out.close()

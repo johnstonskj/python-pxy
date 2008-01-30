@@ -1,8 +1,15 @@
+"""
+Test the basic pxy module
+"""
+
 import pprint, unittest
 
 import tdata, pxy
 
 class BasicTranslationUnitTests(unittest.TestCase):
+    """
+    Test translation between PXY strings and Python dictionaries
+    """
     
     def testBadDictionaries(self):
         for dict in tdata.BAD_DICTS:
